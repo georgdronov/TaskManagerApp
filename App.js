@@ -58,6 +58,8 @@ function TaskApp() {
   const [showDueDatePicker, setShowDueDatePicker] = useState(false);
   const [showCompletionDatePicker, setShowCompletionDatePicker] =
     useState(false);
+  const [filterMenuVisible, setFilterMenuVisible] = useState(false);
+  const [filterType, setFilterType] = useState(null);
 
   useEffect(() => {
     loadTasks();
@@ -132,6 +134,22 @@ function TaskApp() {
     }
   };
 
+  const filterTasks = (type) => {
+    setFilterType(type);
+    setFilterMenuVisible(false);
+  };
+
+  const filteredTasks = () => {
+    if (filterType === "date") {
+      return [...tasks].sort(
+        (a, b) => new Date(a.dueDate) - new Date(b.dueDate)
+      );
+    } else if (filterType === "status") {
+      return [...tasks].sort((a, b) => a.status.localeCompare(b.status));
+    }
+    return tasks;
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -139,7 +157,7 @@ function TaskApp() {
     >
       <FlatList
         contentContainerStyle={styles.listContainer}
-        data={tasks}
+        data={filteredTasks()}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Card style={styles.card}>
@@ -192,6 +210,28 @@ function TaskApp() {
           </Card>
         )}
       />
+
+      <View style={styles.filterContainer}>
+        <Menu
+          visible={filterMenuVisible}
+          onDismiss={() => setFilterMenuVisible(false)}
+          anchor={
+            <Button
+              onPress={() => setFilterMenuVisible(true)}
+              style={styles.filterButton}
+              textColor="#ffffff" // Установите цвет текста на белый
+            >
+              Filter
+            </Button>
+          }
+        >
+          <Menu.Item onPress={() => filterTasks("date")} title="Sort by Date" />
+          <Menu.Item
+            onPress={() => filterTasks("status")}
+            title="Sort by Status"
+          />
+        </Menu>
+      </View>
 
       <Portal>
         <Dialog
@@ -296,6 +336,13 @@ const styles = StyleSheet.create({
     backgroundColor: enhancedTheme.colors.background,
     padding: 10,
     paddingTop: "15%",
+  },
+  filterContainer: {
+    marginBottom: 10,
+  },
+  filterButton: {
+    width: "100%",
+    backgroundColor: enhancedTheme.colors.primary,
   },
   menuButton: {
     backgroundColor: enhancedTheme.colors.primary,
