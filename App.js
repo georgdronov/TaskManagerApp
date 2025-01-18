@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   FlatList,
@@ -7,7 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Text,
-} from 'react-native';
+} from "react-native";
 import {
   Provider as PaperProvider,
   DefaultTheme,
@@ -18,19 +18,20 @@ import {
   Dialog,
   Portal,
   Menu,
-} from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+} from "react-native-paper";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const enhancedTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#004d40',
-    accent: '#00bfa5',
-    background: '#eceff1',
-    surface: '#ffffff',
-    text: '#263238',
-    placeholder: '#78909c',
+    primary: "#004d40",
+    accent: "#00bfa5",
+    background: "#eceff1",
+    surface: "#ffffff",
+    text: "#263238",
+    placeholder: "#78909c",
   },
 };
 
@@ -45,14 +46,18 @@ export default function App() {
 function TaskApp() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({
-    title: '',
-    description: '',
-    dateTime: '',
-    location: '',
-    status: 'New',
+    title: "",
+    description: "",
+    dueDate: null,
+    completionDate: null,
+    location: "",
+    status: "New",
   });
   const [isDialogVisible, setIsDialogVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(null);
+  const [showDueDatePicker, setShowDueDatePicker] = useState(false);
+  const [showCompletionDatePicker, setShowCompletionDatePicker] =
+    useState(false);
 
   useEffect(() => {
     loadTasks();
@@ -64,30 +69,35 @@ function TaskApp() {
 
   const saveTasks = async () => {
     try {
-      await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save tasks!');
+      await AsyncStorage.setItem("tasks", JSON.stringify(tasks));
+    } catch {
+      Alert.alert("Error", "Failed to save tasks!");
     }
   };
 
   const loadTasks = async () => {
     try {
-      const storedTasks = await AsyncStorage.getItem('tasks');
-      if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load tasks!');
+      const storedTasks = await AsyncStorage.getItem("tasks");
+      if (storedTasks) setTasks(JSON.parse(storedTasks));
+    } catch {
+      Alert.alert("Error", "Failed to load tasks!");
     }
   };
 
   const addTask = () => {
     if (newTask.title.trim() && newTask.description.trim()) {
       setTasks([{ ...newTask, id: Date.now().toString() }, ...tasks]);
-      setNewTask({ title: '', description: '', dateTime: '', location: '', status: 'New' });
+      setNewTask({
+        title: "",
+        description: "",
+        dueDate: null,
+        completionDate: null,
+        location: "",
+        status: "New",
+      });
       setIsDialogVisible(false);
     } else {
-      Alert.alert('Validation Error', 'Title and Description are required!');
+      Alert.alert("Validation Error", "Title and Description are required!");
     }
   };
 
@@ -96,16 +106,39 @@ function TaskApp() {
   };
 
   const updateTaskStatus = (id, status) => {
-    setTasks(tasks.map((task) => (task.id === id ? { ...task, status } : task)));
-    setMenuVisible(null); 
+    setTasks(
+      tasks.map((task) => (task.id === id ? { ...task, status } : task))
+    );
+    setMenuVisible(null);
+  };
+
+  const handleDueDateChange = (event, selectedDate) => {
+    setShowDueDatePicker(false);
+    if (selectedDate) {
+      setNewTask({
+        ...newTask,
+        dueDate: selectedDate.toISOString().split("T")[0],
+      });
+    }
+  };
+
+  const handleCompletionDateChange = (event, selectedDate) => {
+    setShowCompletionDatePicker(false);
+    if (selectedDate) {
+      setNewTask({
+        ...newTask,
+        completionDate: selectedDate.toISOString().split("T")[0],
+      });
+    }
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <FlatList
+        contentContainerStyle={styles.listContainer}
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -113,7 +146,12 @@ function TaskApp() {
             <Card.Content>
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.description}>{item.description}</Text>
-              <Text style={styles.info}>Date & Time: {item.dateTime}</Text>
+              <Text style={styles.info}>
+                Due Date: {item.dueDate || "Not Set"}
+              </Text>
+              <Text style={styles.info}>
+                Completion Date: {item.completionDate || "Not Set"}
+              </Text>
               <Text style={styles.info}>Location: {item.location}</Text>
               <Text style={styles.info}>Status: {item.status}</Text>
             </Card.Content>
@@ -132,15 +170,15 @@ function TaskApp() {
               >
                 <Menu.Item
                   title="In Progress"
-                  onPress={() => updateTaskStatus(item.id, 'In Progress')}
+                  onPress={() => updateTaskStatus(item.id, "In Progress")}
                 />
                 <Menu.Item
                   title="Completed"
-                  onPress={() => updateTaskStatus(item.id, 'Completed')}
+                  onPress={() => updateTaskStatus(item.id, "Completed")}
                 />
                 <Menu.Item
                   title="Cancelled"
-                  onPress={() => updateTaskStatus(item.id, 'Cancelled')}
+                  onPress={() => updateTaskStatus(item.id, "Cancelled")}
                 />
               </Menu>
               <IconButton
@@ -155,7 +193,10 @@ function TaskApp() {
       />
 
       <Portal>
-        <Dialog visible={isDialogVisible} onDismiss={() => setIsDialogVisible(false)}>
+        <Dialog
+          visible={isDialogVisible}
+          onDismiss={() => setIsDialogVisible(false)}
+        >
           <Dialog.Title>Add New Task</Dialog.Title>
           <Dialog.Content>
             <TextInput
@@ -167,21 +208,53 @@ function TaskApp() {
             <TextInput
               label="Description"
               value={newTask.description}
-              onChangeText={(text) => setNewTask({ ...newTask, description: text })}
-              style={styles.input}
-            />
-            <TextInput
-              label="Date and Time"
-              value={newTask.dateTime}
-              onChangeText={(text) => setNewTask({ ...newTask, dateTime: text })}
+              onChangeText={(text) =>
+                setNewTask({ ...newTask, description: text })
+              }
               style={styles.input}
             />
             <TextInput
               label="Location"
               value={newTask.location}
-              onChangeText={(text) => setNewTask({ ...newTask, location: text })}
+              onChangeText={(text) =>
+                setNewTask({ ...newTask, location: text })
+              }
               style={styles.input}
             />
+            <Button
+              mode="outlined"
+              onPress={() => setShowDueDatePicker(true)}
+              style={styles.dateButton}
+            >
+              {newTask.dueDate || "Set Due Date"}
+            </Button>
+            {showDueDatePicker && (
+              <DateTimePicker
+                value={newTask.dueDate ? new Date(newTask.dueDate) : new Date()}
+                mode="date"
+                display="default"
+                onChange={handleDueDateChange}
+              />
+            )}
+            <Button
+              mode="outlined"
+              onPress={() => setShowCompletionDatePicker(true)}
+              style={styles.dateButton}
+            >
+              {newTask.completionDate || "Set Completion Date"}
+            </Button>
+            {showCompletionDatePicker && (
+              <DateTimePicker
+                value={
+                  newTask.completionDate
+                    ? new Date(newTask.completionDate)
+                    : new Date()
+                }
+                mode="date"
+                display="default"
+                onChange={handleCompletionDateChange}
+              />
+            )}
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setIsDialogVisible(false)}>Cancel</Button>
@@ -206,6 +279,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: enhancedTheme.colors.background,
     padding: 10,
+    paddingTop: "15%",
+  },
+  listContainer: {
+    paddingTop: "5%",
   },
   card: {
     marginBottom: 10,
@@ -214,7 +291,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   description: {
     fontSize: 14,
@@ -222,14 +299,18 @@ const styles = StyleSheet.create({
   },
   info: {
     fontSize: 12,
-    color: '#78909c',
-    marginTop: 3,
-  },
-  addButton: {
-    margin: 10,
+    color: "#607d8b",
   },
   input: {
     marginBottom: 10,
   },
+  dateButton: {
+    marginBottom: 10,
+  },
+  addButton: {
+    marginTop: 10,
+  },
+  menuButton: {
+    marginRight: 10,
+  },
 });
-
