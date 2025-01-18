@@ -297,6 +297,9 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingTop: "15%",
   },
+  menuButton: {
+    backgroundColor: enhancedTheme.colors.primary,
+  },
   listContainer: {
     paddingTop: "5%",
   },
