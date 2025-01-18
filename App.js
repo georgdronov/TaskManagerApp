@@ -163,6 +163,7 @@ function TaskApp() {
                   <Button
                     onPress={() => setMenuVisible(item.id)}
                     style={styles.menuButton}
+                    textColor="#ffffff"
                   >
                     Change Status
                   </Button>
@@ -224,7 +225,8 @@ function TaskApp() {
             <Button
               mode="outlined"
               onPress={() => setShowDueDatePicker(true)}
-              style={styles.dateButton}
+              style={[styles.dateButton, styles.greenButton]}
+              textColor="#ffffff"
             >
               {newTask.dueDate || "Set Due Date"}
             </Button>
@@ -239,7 +241,8 @@ function TaskApp() {
             <Button
               mode="outlined"
               onPress={() => setShowCompletionDatePicker(true)}
-              style={styles.dateButton}
+              style={[styles.dateButton, styles.greenButton]}
+              textColor="#ffffff"
             >
               {newTask.completionDate || "Set Completion Date"}
             </Button>
@@ -257,8 +260,20 @@ function TaskApp() {
             )}
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setIsDialogVisible(false)}>Cancel</Button>
-            <Button onPress={addTask}>Add</Button>
+            <Button
+              onPress={() => setIsDialogVisible(false)}
+              mode="contained"
+              style={[styles.actionButton, styles.cancelButton]}
+            >
+              Cancel
+            </Button>
+            <Button
+              onPress={addTask}
+              mode="contained"
+              style={[styles.actionButton, styles.addButton]}
+            >
+              Add
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -267,6 +282,7 @@ function TaskApp() {
         mode="contained"
         onPress={() => setIsDialogVisible(true)}
         style={styles.addButton}
+        textColor="#ffffff"
       >
         Add Task
       </Button>
@@ -299,18 +315,27 @@ const styles = StyleSheet.create({
   },
   info: {
     fontSize: 12,
-    color: "#607d8b",
   },
   input: {
     marginBottom: 10,
   },
   dateButton: {
+    marginTop: 5,
     marginBottom: 10,
   },
-  addButton: {
-    marginTop: 10,
+  greenButton: {
+    backgroundColor: enhancedTheme.colors.primary,
+    color: "#ffffff",
   },
-  menuButton: {
-    marginRight: 10,
+  actionButton: {
+    flex: 1,
+    margin: 5,
+    borderRadius: 5,
+  },
+  cancelButton: {
+    backgroundColor: "#d32f2f",
+  },
+  addButton: {
+    backgroundColor: enhancedTheme.colors.primary,
   },
 });
