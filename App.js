@@ -79,6 +79,13 @@ function TaskApp() {
 
   const addTask = () => {
     if (newTask.title.trim() && newTask.description.trim()) {
+      if (!newTask.dueDate || !newTask.completionDate) {
+        Alert.alert(
+          "Validation Error",
+          "Both Due Date and Completion Date must be selected!"
+        );
+        return;
+      }
       setTasks([{ ...newTask, id: Date.now().toString() }, ...tasks]);
       setNewTask({
         title: "",
@@ -93,6 +100,7 @@ function TaskApp() {
       Alert.alert("Validation Error", "Title and Description are required!");
     }
   };
+  
 
   const deleteTask = (id) => {
     setTasks(tasks.filter((task) => task.id !== id));
