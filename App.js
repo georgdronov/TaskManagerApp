@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
+import { enhancedTheme } from "./styles";
+import styles from "./styles";
 import {
   View,
   FlatList,
-  StyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
   Text,
+  TouchableOpacity,
 } from "react-native";
 import {
   Provider as PaperProvider,
-  DefaultTheme,
   TextInput,
   Button,
   Card,
@@ -21,19 +22,7 @@ import {
 } from "react-native-paper";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const enhancedTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: "#004d40",
-    accent: "#00bfa5",
-    background: "#eceff1",
-    surface: "#ffffff",
-    text: "#263238",
-    placeholder: "#78909c",
-  },
-};
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function App() {
   return (
@@ -60,6 +49,8 @@ function TaskApp() {
     useState(false);
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
   const [filterType, setFilterType] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [isTaskDetailVisible, setIsTaskDetailVisible] = useState(false);
 
   useEffect(() => {
     loadTasks();
@@ -129,7 +120,10 @@ function TaskApp() {
     if (selectedDate) {
       const dueDate = new Date(newTask.dueDate);
       if (dueDate && selectedDate < dueDate) {
-        Alert.alert("Validation Error", "Completion date cannot be earlier than due date!");
+        Alert.alert(
+          "Validation Error",
+          "Completion date cannot be earlier than due date!"
+        );
         return;
       }
       setNewTask({
@@ -155,6 +149,24 @@ function TaskApp() {
     return tasks;
   };
 
+  const handleTaskPress = (task) => {
+    setSelectedTask(task);
+    setIsTaskDetailVisible(true);
+  };
+
+  const closeTaskDetail = () => {
+    setIsTaskDetailVisible(false);
+    setSelectedTask(null);
+    setMenuVisible(null);
+  };
+
+  const handleDeleteTask = () => {
+    if (selectedTask) {
+      deleteTask(selectedTask.id);
+      closeTaskDetail();
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -165,54 +177,58 @@ function TaskApp() {
         data={filteredTasks()}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.description}>{item.description}</Text>
-              <Text style={styles.info}>
-                Due Date: {item.dueDate || "Not Set"}
-              </Text>
-              <Text style={styles.info}>
-                Completion Date: {item.completionDate || "Not Set"}
-              </Text>
-              <Text style={styles.info}>Location: {item.location}</Text>
-              <Text style={styles.info}>Status: {item.status}</Text>
-            </Card.Content>
-            <Card.Actions>
-              <Menu
-                visible={menuVisible === item.id}
-                onDismiss={() => setMenuVisible(null)}
-                anchor={
-                  <Button
-                    onPress={() => setMenuVisible(item.id)}
-                    style={styles.menuButton}
-                    textColor="#ffffff"
-                  >
-                    Change Status
-                  </Button>
-                }
-              >
-                <Menu.Item
-                  title="In Progress"
-                  onPress={() => updateTaskStatus(item.id, "In Progress")}
+          <TouchableOpacity
+            onPress={() => handleTaskPress(item)}
+            onDoublePress={() => handleTaskPress(item)}
+          >
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.info}>
+                  Due Date: {item.dueDate || "Not Set"}
+                </Text>
+                <Text style={styles.info}>
+                  Completion Date: {item.completionDate || "Not Set"}
+                </Text>
+                <Text style={styles.info}>Location: {item.location}</Text>
+                <Text style={styles.info}>Status: {item.status}</Text>
+              </Card.Content>
+              <Card.Actions>
+                <Menu
+                  visible={menuVisible === item.id}
+                  onDismiss={() => setMenuVisible(null)}
+                  anchor={
+                    <Button
+                      onPress={() => setMenuVisible(item.id)}
+                      style={styles.menuButton}
+                      textColor="#ffffff"
+                    >
+                      Change Status
+                    </Button>
+                  }
+                >
+                  <Menu.Item
+                    title="In Progress"
+                    onPress={() => updateTaskStatus(item.id, "In Progress")}
+                  />
+                  <Menu.Item
+                    title="Completed"
+                    onPress={() => updateTaskStatus(item.id, "Completed")}
+                  />
+                  <Menu.Item
+                    title="Cancelled"
+                    onPress={() => updateTaskStatus(item.id, "Cancelled")}
+                  />
+                </Menu>
+                <IconButton
+                  icon="delete"
+                  color="red"
+                  size={20}
+                  onPress={() => deleteTask(item.id)}
                 />
-                <Menu.Item
-                  title="Completed"
-                  onPress={() => updateTaskStatus(item.id, "Completed")}
-                />
-                <Menu.Item
-                  title="Cancelled"
-                  onPress={() => updateTaskStatus(item.id, "Cancelled")}
-                />
-              </Menu>
-              <IconButton
-                icon="delete"
-                color="red"
-                size={20}
-                onPress={() => deleteTask(item.id)}
-              />
-            </Card.Actions>
-          </Card>
+              </Card.Actions>
+            </Card>
+          </TouchableOpacity>
         )}
       />
 
@@ -258,6 +274,8 @@ function TaskApp() {
                 setNewTask({ ...newTask, description: text })
               }
               style={styles.input}
+              multiline
+              numberOfLines={4}
             />
             <TextInput
               label="Location"
@@ -270,7 +288,7 @@ function TaskApp() {
             <Button
               mode="outlined"
               onPress={() => setShowDueDatePicker(true)}
-              style={[styles.dateButton, styles.greenButton]}
+              style={styles.dateButton}
               textColor="#ffffff"
             >
               {newTask.dueDate || "Set Due Date"}
@@ -286,7 +304,7 @@ function TaskApp() {
             <Button
               mode="outlined"
               onPress={() => setShowCompletionDatePicker(true)}
-              style={[styles.dateButton, styles.greenButton]}
+              style={styles.dateButton}
               textColor="#ffffff"
             >
               {newTask.completionDate || "Set Completion Date"}
@@ -321,6 +339,39 @@ function TaskApp() {
             </Button>
           </Dialog.Actions>
         </Dialog>
+
+        <Dialog
+          visible={isTaskDetailVisible}
+          onDismiss={closeTaskDetail}
+          style={styles.taskDetailDialog}
+        >
+          <Dialog.Title style={styles.dialogTitle}>
+            {selectedTask?.title}
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text style={styles.taskDetailDescription}>
+              {selectedTask?.description}
+            </Text>
+            <Text style={styles.info}>
+              Due Date: {selectedTask?.dueDate || "Not Set"}
+            </Text>
+            <Text style={styles.info}>
+              Completion Date: {selectedTask?.completionDate || "Not Set"}
+            </Text>
+            <Text style={styles.info}>Location: {selectedTask?.location}</Text>
+            <Text style={styles.info}>Status: {selectedTask?.status}</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              onPress={closeTaskDetail}
+              mode="contained"
+              style={[styles.actionButton, styles.closeButton]}
+              textColor="#ffffff"
+            >
+              Close
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
       </Portal>
 
       <Button
@@ -334,63 +385,3 @@ function TaskApp() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: enhancedTheme.colors.background,
-    padding: 10,
-    paddingTop: "15%",
-  },
-  filterContainer: {
-    marginBottom: 10,
-  },
-  filterButton: {
-    width: "100%",
-    backgroundColor: enhancedTheme.colors.primary,
-  },
-  menuButton: {
-    backgroundColor: enhancedTheme.colors.primary,
-  },
-  listContainer: {
-    paddingTop: "5%",
-  },
-  card: {
-    marginBottom: 10,
-    borderRadius: 8,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  description: {
-    fontSize: 14,
-    marginTop: 5,
-  },
-  info: {
-    fontSize: 12,
-  },
-  input: {
-    marginBottom: 10,
-  },
-  dateButton: {
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  greenButton: {
-    backgroundColor: enhancedTheme.colors.primary,
-    color: "#ffffff",
-  },
-  actionButton: {
-    flex: 1,
-    margin: 5,
-    borderRadius: 5,
-  },
-  cancelButton: {
-    backgroundColor: "#d32f2f",
-  },
-  addButton: {
-    backgroundColor: enhancedTheme.colors.primary,
-  },
-});
