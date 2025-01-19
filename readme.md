@@ -16,8 +16,8 @@ Task management application built with **React Native**.
 
 - **Manage Tasks**:
   - Mark tasks as "In Progress", "Completed", or "Cancelled".
-  - Edit task details.
   - Delete tasks.
+  - Sort task by date and status.
 
 - **Local Storage**:
   - Task data is saved locally using `@react-native-async-storage/async-storage`.

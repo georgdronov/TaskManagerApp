@@ -127,6 +127,11 @@ function TaskApp() {
   const handleCompletionDateChange = (event, selectedDate) => {
     setShowCompletionDatePicker(false);
     if (selectedDate) {
+      const dueDate = new Date(newTask.dueDate);
+      if (dueDate && selectedDate < dueDate) {
+        Alert.alert("Validation Error", "Completion date cannot be earlier than due date!");
+        return;
+      }
       setNewTask({
         ...newTask,
         completionDate: selectedDate.toISOString().split("T")[0],
@@ -219,7 +224,7 @@ function TaskApp() {
             <Button
               onPress={() => setFilterMenuVisible(true)}
               style={styles.filterButton}
-              textColor="#ffffff" // Установите цвет текста на белый
+              textColor="#ffffff"
             >
               Filter
             </Button>
@@ -324,7 +329,7 @@ function TaskApp() {
         style={styles.addButton}
         textColor="#ffffff"
       >
-        Add Task
+        Add Tasks
       </Button>
     </KeyboardAvoidingView>
   );
