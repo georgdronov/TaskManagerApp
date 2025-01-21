@@ -79,13 +79,6 @@ function TaskApp() {
 
   const addTask = () => {
     if (newTask.title.trim() && newTask.description.trim()) {
-      if (!newTask.dueDate || !newTask.completionDate) {
-        Alert.alert(
-          "Validation Error",
-          "Both Due Date and Completion Date must be selected!"
-        );
-        return;
-      }
       setTasks([{ ...newTask, id: Date.now().toString() }, ...tasks]);
       setNewTask({
         title: "",
@@ -100,7 +93,6 @@ function TaskApp() {
       Alert.alert("Validation Error", "Title and Description are required!");
     }
   };
-  
 
   const deleteTask = (id) => {
     setTasks(tasks.filter((task) => task.id !== id));
@@ -192,13 +184,17 @@ function TaskApp() {
             <Card style={styles.card}>
               <Card.Content>
                 <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.info}>
-                  Due Date: {item.dueDate || "Not Set"}
-                </Text>
-                <Text style={styles.info}>
-                  Completion Date: {item.completionDate || "Not Set"}
-                </Text>
-                <Text style={styles.info}>Location: {item.location}</Text>
+                {item.dueDate && (
+                  <Text style={styles.info}>Due Date: {item.dueDate}</Text>
+                )}
+                {item.completionDate && (
+                  <Text style={styles.info}>
+                    Completion Date: {item.completionDate}
+                  </Text>
+                )}
+                {item.location && (
+                  <Text style={styles.info}>Location: {item.location}</Text>
+                )}
                 <Text style={styles.info}>Status: {item.status}</Text>
               </Card.Content>
               <Card.Actions>
@@ -360,13 +356,17 @@ function TaskApp() {
             <Text style={styles.taskDetailDescription}>
               {selectedTask?.description}
             </Text>
-            <Text style={styles.info}>
-              Due Date: {selectedTask?.dueDate || "Not Set"}
-            </Text>
-            <Text style={styles.info}>
-              Completion Date: {selectedTask?.completionDate || "Not Set"}
-            </Text>
-            <Text style={styles.info}>Location: {selectedTask?.location}</Text>
+            {selectedTask?.dueDate && (
+              <Text style={styles.info}>Due Date: {selectedTask.dueDate}</Text>
+            )}
+            {selectedTask?.completionDate && (
+              <Text style={styles.info}>
+                Completion Date: {selectedTask.completionDate}
+              </Text>
+            )}
+            {selectedTask?.location && (
+              <Text style={styles.info}>Location: {selectedTask.location}</Text>
+            )}
             <Text style={styles.info}>Status: {selectedTask?.status}</Text>
           </Dialog.Content>
           <Dialog.Actions>

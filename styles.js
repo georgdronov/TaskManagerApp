@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   dateButton: {
     marginTop: 5,
     marginBottom: 10,
-    backgroundColor: "#1b72b5",
+    backgroundColor: enhancedTheme.colors.primary,
     color: "#ffffff",
     borderRadius: 5,
   },
